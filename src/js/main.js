@@ -80,6 +80,43 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Show welcome message
 	showWelcomeEffect();
 
+	// Color Palette - Curated colors from web standards
+	const CURATED_COLORS = [
+		// CSS Named Colors
+		"black", "white", "red", "blue", "green", "yellow", "purple", "aqua", "gray", "silver", "maroon", "olive",
+		"lime", "teal", "navy", "fuchsia", "orange", "pink", "gold", "cyan", "brown", "chocolate", "coral",
+		"crimson", "darkblue", "darkcyan", "darkgoldenrod", "darkgray", "darkgreen", "darkkhaki", "darkmagenta",
+		"darkolivegreen", "darkorange", "darkorchid", "darkred", "darksalmon", "darkseagreen", "darkslateblue",
+		"darkslategray", "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dodgerblue", "firebrick",
+		"forestgreen", "gainsboro", "ghostwhite", "greenyellow", "honeydew", "indianred", "indigo", "ivory", "khaki",
+		"lavender", "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
+		"lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
+		"lightslategray", "lightsteelblue", "lightyellow", "limegreen", "linen", "mediumaquamarine", "mediumblue",
+		"mediumorchid", "mediumpurple", "mediumseagreen", "mediumslateblue", "mediumspringgreen", "mediumturquoise",
+		"mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin", "navajowhite", "oldlace",
+		"olivedrab", "orangered", "orchid", "palegoldenrod", "palegreen", "paleturquoise", "palevioletred",
+		"papayawhip", "peachpuff", "peru", "plum", "powderblue", "rosybrown", "royalblue", "saddlebrown",
+		"salmon", "sandybrown", "seagreen", "seashell", "sienna", "skyblue", "slateblue", "slategray",
+		"snow", "springgreen", "steelblue", "tan", "thistle", "tomato", "turquoise", "violet", "wheat",
+		"whitesmoke", "yellowgreen",
+		
+		// Web Safe Colors
+		"#000000", "#330000", "#660000", "#990000", "#CC0000", "#FF0000", "#003300", "#333300", "#663300",
+		"#993300", "#CC3300", "#FF3300", "#006600", "#336600", "#666600", "#996600", "#CC6600", "#FF6600",
+		"#009900", "#339900", "#669900", "#999900", "#CC9900", "#FF9900", "#00CC00", "#33CC00", "#66CC00",
+		"#99CC00", "#CCCC00", "#FFCC00", "#00FF00", "#33FF00", "#66FF00", "#99FF00", "#CCFF00", "#FFFF00",
+		"#00FFFF", "#33FFFF", "#66FFFF", "#99FFFF", "#CCFFFF", "#FFFFFF",
+		
+		// Material Design Colors
+		"#F44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3", "#03A9F4", "#00BCD4", "#009688",
+		"#4CAF50", "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107", "#FF9800", "#FF5722", "#795548", "#9E9E9E",
+		"#607D8B",
+		
+		// Tailwind CSS Colors
+		"#1E3A8A", "#9333EA", "#D97706", "#16A34A", "#DC2626", "#64748B", "#0EA5E9", "#FACC15", "#4F46E5",
+		"#14B8A6", "#EC4899", "#F43F5E", "#F87171", "#22C55E", "#A3E635", "#EAB308", "#FB923C", "#38BDF8"
+	];
+
 	/**
 	 * Shows a subtle welcome animation
 	 */
@@ -608,8 +645,30 @@ document.addEventListener('DOMContentLoaded', function() {
 	 * Generate random colors
 	 */
 	function generateRandomColors() {
-		foregroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
-		backgroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
+		// Pick two different random colors from the curated list
+		const colorIndex1 = Math.floor(Math.random() * CURATED_COLORS.length);
+		let colorIndex2 = Math.floor(Math.random() * CURATED_COLORS.length);
+		
+		// Ensure we don't get the same color for both (especially important for contrast)
+		while (colorIndex2 === colorIndex1) {
+			colorIndex2 = Math.floor(Math.random() * CURATED_COLORS.length);
+		}
+		
+		let foreground = CURATED_COLORS[colorIndex1];
+		let background = CURATED_COLORS[colorIndex2];
+		
+		// Convert named colors to hex if needed
+		if (foreground.charAt(0) !== '#') {
+			foreground = nameToHex(foreground);
+		}
+		
+		if (background.charAt(0) !== '#') {
+			background = nameToHex(background);
+		}
+		
+		foregroundInput.value = foreground.toUpperCase();
+		backgroundInput.value = background.toUpperCase();
+		
 		updateColorPreview();
 		updateSwatches();
 		
@@ -620,6 +679,33 @@ document.addEventListener('DOMContentLoaded', function() {
 		setTimeout(() => {
 			checkAccessibility();
 		}, 500);
+	}
+
+	/**
+	 * Convert a color name to its hex value using a temporary element
+	 */
+	function nameToHex(colorName) {
+		const tempElement = document.createElement('div');
+		tempElement.style.color = colorName;
+		document.body.appendChild(tempElement);
+		
+		// Get computed color value
+		const computedColor = window.getComputedStyle(tempElement).color;
+		document.body.removeChild(tempElement);
+		
+		// Convert RGB to hex
+		if (computedColor.startsWith('rgb')) {
+			const rgb = computedColor.match(/\d+/g);
+			if (rgb && rgb.length >= 3) {
+				return '#' + 
+					parseInt(rgb[0]).toString(16).padStart(2, '0') +
+					parseInt(rgb[1]).toString(16).padStart(2, '0') +
+					parseInt(rgb[2]).toString(16).padStart(2, '0');
+			}
+		}
+		
+		// Return the original if conversion failed
+		return colorName;
 	}
 
 	/**
