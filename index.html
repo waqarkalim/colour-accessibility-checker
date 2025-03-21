@@ -3,52 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hex Color Accessibility Checker</title>
+  <meta name="description" content="Check color combinations against WCAG accessibility standards and find accessible alternatives">
+  <title>Color Contrast Checker | WCAG Accessibility Tool</title>
   <link rel="stylesheet" href="src/css/styles.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Hex Color Accessibility Checker</h1>
-      <p>Test color combinations for WCAG 2.1 compliance and get suggestions for accessible alternatives.</p>
+      <h1>Color Contrast Checker</h1>
+      <p>Test color combinations for WCAG compliance and discover accessible alternatives</p>
     </header>
     
     <main>
-      <div class="input-group">
-        <div class="color-input">
-          <label for="foreground-color">Foreground Color (Text):</label>
-          <input type="text" id="foreground-color" placeholder="#000000">
+      <section class="color-inputs">
+        <div class="input-group">
+          <div class="color-input">
+            <label for="foreground-color">Text Color</label>
+            <input type="text" id="foreground-color" placeholder="#000000" spellcheck="false" autocomplete="off">
+          </div>
+          
+          <div class="color-input">
+            <label for="background-color">Background Color</label>
+            <input type="text" id="background-color" placeholder="#FFFFFF" spellcheck="false" autocomplete="off">
+          </div>
         </div>
-        
-        <div class="color-input">
-          <label for="background-color">Background Color:</label>
-          <input type="text" id="background-color" placeholder="#FFFFFF">
+      </section>
+      
+      <section class="preview-section">
+        <div id="color-preview" class="color-preview">
+          <p>Preview Text</p>
         </div>
-      </div>
+      </section>
       
-      <div id="color-preview" class="color-preview">
-        <h2>Preview</h2>
-        <p>This is sample text</p>
-      </div>
+      <section class="actions">
+        <div class="buttons">
+          <button id="check-button" class="primary-button">Check Contrast</button>
+          <button id="random-button" class="secondary-button">Random Colors</button>
+          <button id="reset-button" class="secondary-button">Reset</button>
+        </div>
+      </section>
       
-      <div class="buttons">
-        <button id="check-button" class="primary-button">Check Accessibility</button>
-        <button id="random-button" class="secondary-button">Random Colors</button>
-        <button id="reset-button" class="secondary-button">Reset</button>
-      </div>
-      
-      <div id="result-container" class="result-container hidden">
-        <h2>Contrast Ratio</h2>
-        <div id="contrast-ratio" class="contrast-ratio">--</div>
+      <section id="result-container" class="result-container hidden">
+        <div class="results-summary">
+          <h2>Contrast Ratio</h2>
+          <div id="contrast-ratio" class="contrast-ratio">--</div>
+        </div>
         
         <div id="wcag-results" class="wcag-results"></div>
         
         <div id="alternatives-container" class="alternatives-container"></div>
-      </div>
+      </section>
     </main>
     
     <footer>
-      <p>Based on WCAG 2.1 guidelines. Created for color accessibility testing purposes.</p>
+      <p>Based on <a href="https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html" target="_blank" rel="noopener">WCAG 2.1</a> guidelines for web accessibility</p>
     </footer>
   </div>
   

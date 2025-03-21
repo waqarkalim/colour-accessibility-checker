@@ -1,12 +1,12 @@
 /**
- * Hex Color Accessibility Checker
+ * Color Contrast Accessibility Checker
  * 
- * This tool checks color combinations against WCAG accessibility standards
+ * Checks color combinations against WCAG 2.1 accessibility standards
  * and suggests alternatives for non-compliant combinations.
  */
 
-// DOM Elements
 document.addEventListener('DOMContentLoaded', function() {
+	// DOM Elements
 	const foregroundInput = document.getElementById('foreground-color');
 	const backgroundInput = document.getElementById('background-color');
 	const checkButton = document.getElementById('check-button');
@@ -26,11 +26,46 @@ document.addEventListener('DOMContentLoaded', function() {
 	checkButton.addEventListener('click', checkAccessibility);
 	randomButton.addEventListener('click', generateRandomColors);
 	resetButton.addEventListener('click', resetColors);
-	foregroundInput.addEventListener('input', updateColorPreview);
-	backgroundInput.addEventListener('input', updateColorPreview);
+	foregroundInput.addEventListener('input', handleInputChange);
+	backgroundInput.addEventListener('input', handleInputChange);
+	
+	// Handle keypresses in input fields
+	foregroundInput.addEventListener('keydown', handleKeyDown);
+	backgroundInput.addEventListener('keydown', handleKeyDown);
 
 	// Initialize preview
 	updateColorPreview();
+
+	/**
+	 * Handler for key presses in input fields
+	 */
+	function handleKeyDown(e) {
+		// Run check when pressing Enter
+		if (e.key === 'Enter') {
+			checkAccessibility();
+		}
+		
+		// Add # automatically if typing directly a hex code
+		if (!e.target.value.startsWith('#') && e.key.match(/[0-9a-f]/i)) {
+			e.target.value = '#';
+		}
+	}
+	
+	/**
+	 * Handle input change with debounce
+	 */
+	let debounceTimeout;
+	function handleInputChange(e) {
+		updateColorPreview();
+		
+		// Automatically check accessibility after a short delay
+		clearTimeout(debounceTimeout);
+		debounceTimeout = setTimeout(() => {
+			if (isValidHex(foregroundInput.value) && isValidHex(backgroundInput.value)) {
+				checkAccessibility();
+			}
+		}, 500);
+	}
 
 	/**
 	 * Main function to check accessibility and display results
@@ -40,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		const backgroundColor = backgroundInput.value;
 
 		if (!isValidHex(foregroundColor) || !isValidHex(backgroundColor)) {
-			alert('Please enter valid hex colors');
+			alert('Please enter valid hex colors (e.g., #000000)');
 			return;
 		}
 
@@ -59,7 +94,11 @@ document.addEventListener('DOMContentLoaded', function() {
 			alternativesContainer.innerHTML = '<p>Great! Your color combination meets all WCAG standards.</p>';
 		}
 
+		// Show results with animation
 		resultContainer.classList.remove('hidden');
+		setTimeout(() => {
+			resultContainer.classList.add('visible');
+		}, 10);
 	}
 
 	/**
@@ -135,16 +174,16 @@ document.addEventListener('DOMContentLoaded', function() {
       <h3>WCAG 2.1 Compliance</h3>
       <ul>
         <li class="${compliance.AALargeText ? 'pass' : 'fail'}">
-          AA Large Text (3:1): ${compliance.AALargeText ? 'Pass ✓' : 'Fail ✗'}
+          AA Large Text (3:1) <span>${compliance.AALargeText ? 'Pass ✓' : 'Fail ✗'}</span>
         </li>
         <li class="${compliance.AASmallText ? 'pass' : 'fail'}">
-          AA Small Text (4.5:1): ${compliance.AASmallText ? 'Pass ✓' : 'Fail ✗'}
+          AA Small Text (4.5:1) <span>${compliance.AASmallText ? 'Pass ✓' : 'Fail ✗'}</span>
         </li>
         <li class="${compliance.AAALargeText ? 'pass' : 'fail'}">
-          AAA Large Text (4.5:1): ${compliance.AAALargeText ? 'Pass ✓' : 'Fail ✗'}
+          AAA Large Text (4.5:1) <span>${compliance.AAALargeText ? 'Pass ✓' : 'Fail ✗'}</span>
         </li>
         <li class="${compliance.AAASmallText ? 'pass' : 'fail'}">
-          AAA Small Text (7:1): ${compliance.AAASmallText ? 'Pass ✓' : 'Fail ✗'}
+          AAA Small Text (7:1) <span>${compliance.AAASmallText ? 'Pass ✓' : 'Fail ✗'}</span>
         </li>
       </ul>
     `;
@@ -278,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	 */
 	function displayAlternatives(alternatives) {
 		let html = '<h3>Suggested Alternatives</h3>';
+		html += '<div class="alternatives-grid">';
 
 		alternatives.forEach((alt, index) => {
 			const fg = alt.foreground || alt;
@@ -302,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Sample Text
           </div>
           <div class="alternative-info">
-            <div>Foreground: <span class="color-code">${fg}</span></div>
+            <div>Text: <span class="color-code">${fg}</span></div>
             <div>Background: <span class="color-code">${bg}</span></div>
             <div>Contrast: ${ratio} ${complianceText}</div>
             <button class="apply-button" data-fg="${fg}" data-bg="${bg}">Apply</button>
@@ -311,6 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
 		});
 
+		html += '</div>';
 		alternativesContainer.innerHTML = html;
 
 		// Add event listeners to apply buttons
@@ -341,9 +382,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	 * Generate random colors
 	 */
 	function generateRandomColors() {
-		foregroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-		backgroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+		foregroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
+		backgroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
 		updateColorPreview();
+		checkAccessibility();
 	}
 
 	/**
@@ -353,7 +395,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		foregroundInput.value = '#000000';
 		backgroundInput.value = '#FFFFFF';
 		updateColorPreview();
-		resultContainer.classList.add('hidden');
+		resultContainer.classList.remove('visible');
+		setTimeout(() => {
+			resultContainer.classList.add('hidden');
+		}, 300);
 	}
 
 	/**
