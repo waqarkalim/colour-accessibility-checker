@@ -1,14 +1,19 @@
 /**
- * Color Contrast Accessibility Checker
+ * Chroma11y - Accessible Color Contrast Tool
  * 
- * Checks color combinations against WCAG 2.1 accessibility standards
- * and suggests alternatives for non-compliant combinations.
+ * A professional tool for designers and developers to create
+ * beautiful, accessible color combinations that comply with
+ * WCAG 2.1 accessibility standards.
+ * 
+ * Version: 1.2.0
  */
 
 document.addEventListener('DOMContentLoaded', function() {
 	// DOM Elements
 	const foregroundInput = document.getElementById('foreground-color');
 	const backgroundInput = document.getElementById('background-color');
+	const foregroundSwatch = document.getElementById('foreground-swatch');
+	const backgroundSwatch = document.getElementById('background-swatch');
 	const checkButton = document.getElementById('check-button');
 	const randomButton = document.getElementById('random-button');
 	const resetButton = document.getElementById('reset-button');
@@ -17,10 +22,20 @@ document.addEventListener('DOMContentLoaded', function() {
 	const contrastRatio = document.getElementById('contrast-ratio');
 	const wcagResults = document.getElementById('wcag-results');
 	const alternativesContainer = document.getElementById('alternatives-container');
+	const aboutTrigger = document.querySelector('.js-about-trigger');
+	const aboutModal = document.getElementById('about-modal');
+	const closeModal = document.querySelector('.close-modal');
+	const currentYearElement = document.getElementById('current-year');
+
+	// Set current year in footer
+	currentYearElement.textContent = new Date().getFullYear();
 
 	// Default colors
 	foregroundInput.value = '#000000';
 	backgroundInput.value = '#FFFFFF';
+
+	// Update swatches
+	updateSwatches();
 
 	// Event listeners
 	checkButton.addEventListener('click', checkAccessibility);
@@ -33,8 +48,54 @@ document.addEventListener('DOMContentLoaded', function() {
 	foregroundInput.addEventListener('keydown', handleKeyDown);
 	backgroundInput.addEventListener('keydown', handleKeyDown);
 
+	// About modal
+	if (aboutTrigger) {
+		aboutTrigger.addEventListener('click', function(e) {
+			e.preventDefault();
+			aboutModal.classList.add('active');
+		});
+	}
+
+	if (closeModal) {
+		closeModal.addEventListener('click', function() {
+			aboutModal.classList.remove('active');
+		});
+	}
+
+	// Click outside modal to close
+	window.addEventListener('click', function(e) {
+		if (e.target === aboutModal) {
+			aboutModal.classList.remove('active');
+		}
+	});
+
+	// Escape key to close modal
+	window.addEventListener('keydown', function(e) {
+		if (e.key === 'Escape' && aboutModal.classList.contains('active')) {
+			aboutModal.classList.remove('active');
+		}
+	});
+
 	// Initialize preview
 	updateColorPreview();
+
+	// Show welcome message
+	showWelcomeEffect();
+
+	/**
+	 * Shows a subtle welcome animation
+	 */
+	function showWelcomeEffect() {
+		// Add a subtle entrance animation for the main container
+		document.querySelector('.container').style.opacity = '0';
+		document.querySelector('.container').style.transform = 'translateY(10px)';
+		
+		setTimeout(() => {
+			document.querySelector('.container').style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+			document.querySelector('.container').style.opacity = '1';
+			document.querySelector('.container').style.transform = 'translateY(0)';
+		}, 100);
+	}
 
 	/**
 	 * Handler for key presses in input fields
@@ -57,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	let debounceTimeout;
 	function handleInputChange(e) {
 		updateColorPreview();
+		updateSwatches();
 		
 		// Automatically check accessibility after a short delay
 		clearTimeout(debounceTimeout);
@@ -68,6 +130,19 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	/**
+	 * Update color swatches next to inputs
+	 */
+	function updateSwatches() {
+		if (isValidHex(foregroundInput.value)) {
+			foregroundSwatch.style.backgroundColor = foregroundInput.value;
+		}
+		
+		if (isValidHex(backgroundInput.value)) {
+			backgroundSwatch.style.backgroundColor = backgroundInput.value;
+		}
+	}
+
+	/**
 	 * Main function to check accessibility and display results
 	 */
 	function checkAccessibility() {
@@ -75,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		const backgroundColor = backgroundInput.value;
 
 		if (!isValidHex(foregroundColor) || !isValidHex(backgroundColor)) {
-			alert('Please enter valid hex colors (e.g., #000000)');
+			showNotification('Please enter valid hex colors (e.g., #000000)', 'error');
 			return;
 		}
 
@@ -91,14 +166,54 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (!wcagCompliance.AALargeText || !wcagCompliance.AASmallText) {
 			generateAlternatives(foregroundColor, backgroundColor);
 		} else {
-			alternativesContainer.innerHTML = '<p>Great! Your color combination meets all WCAG standards.</p>';
+			alternativesContainer.innerHTML = `
+				<h3>All Accessibility Checks Passed! 🎉</h3>
+				<p class="success-message">Your color combination meets all WCAG standards. It provides excellent readability for all users, including those with visual impairments.</p>
+			`;
 		}
 
 		// Show results with animation
 		resultContainer.classList.remove('hidden');
 		setTimeout(() => {
 			resultContainer.classList.add('visible');
+			
+			// Smooth scroll to results on mobile
+			if (window.innerWidth < 768) {
+				resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			}
 		}, 10);
+	}
+
+	/**
+	 * Display a notification message
+	 */
+	function showNotification(message, type = 'info') {
+		// Remove any existing notification
+		const existingNotification = document.querySelector('.notification');
+		if (existingNotification) {
+			existingNotification.remove();
+		}
+		
+		// Create notification element
+		const notification = document.createElement('div');
+		notification.className = `notification ${type}`;
+		notification.textContent = message;
+		
+		// Add to DOM
+		document.body.appendChild(notification);
+		
+		// Show with animation
+		setTimeout(() => {
+			notification.classList.add('visible');
+		}, 10);
+		
+		// Auto-remove after 3 seconds
+		setTimeout(() => {
+			notification.classList.remove('visible');
+			setTimeout(() => {
+				notification.remove();
+			}, 300);
+		}, 3000);
 	}
 
 	/**
@@ -460,7 +575,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				foregroundInput.value = this.dataset.fg;
 				backgroundInput.value = this.dataset.bg;
 				updateColorPreview();
+				updateSwatches();
 				checkAccessibility();
+				
+				// Show feedback
+				showNotification('Colors applied successfully!', 'success');
 			});
 		});
 	}
@@ -485,7 +604,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		foregroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
 		backgroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
 		updateColorPreview();
+		updateSwatches();
 		checkAccessibility();
+		
+		// Show feedback
+		showNotification('Random colors generated!', 'info');
 	}
 
 	/**
@@ -495,10 +618,14 @@ document.addEventListener('DOMContentLoaded', function() {
 		foregroundInput.value = '#000000';
 		backgroundInput.value = '#FFFFFF';
 		updateColorPreview();
+		updateSwatches();
 		resultContainer.classList.remove('visible');
 		setTimeout(() => {
 			resultContainer.classList.add('hidden');
 		}, 300);
+		
+		// Show feedback
+		showNotification('Colors reset to default', 'info');
 	}
 
 	/**

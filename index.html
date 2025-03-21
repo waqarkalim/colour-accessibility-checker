@@ -3,63 +3,103 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Check color combinations against WCAG accessibility standards and find accessible alternatives">
-  <title>Color Contrast Checker | WCAG Accessibility Tool</title>
+  <meta name="description" content="Create accessible color combinations that comply with WCAG standards. Test, verify, and find beautiful, accessible color pairs for your designs.">
+  <title>Chroma11y | Accessible Color Contrast Tool</title>
   <link rel="stylesheet" href="src/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Color Contrast Checker</h1>
-      <p>Test color combinations for WCAG compliance and discover accessible alternatives</p>
+      <div class="logo-container">
+        <span class="logo-accent">C</span><span class="logo">hroma11y</span>
+      </div>
+      <p class="tagline">Beautiful colors. Perfect accessibility.</p>
     </header>
-    
+
     <main>
+      <section class="intro">
+        <h1>Create accessible color combinations that look great</h1>
+        <p class="description">Test your colors against <a href="https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html" target="_blank" rel="noopener">WCAG 2.1</a> accessibility standards and find compliant alternatives that maintain your design vision.</p>
+      </section>
+
       <section class="color-inputs">
         <div class="input-group">
-          <div class="color-input">
-            <label for="foreground-color">Text Color</label>
-            <input type="text" id="foreground-color" placeholder="#000000" spellcheck="false" autocomplete="off">
+          <label for="foreground-color">Text Color</label>
+          <div class="color-input-wrapper">
+            <input type="text" id="foreground-color" placeholder="#000000" maxlength="7">
+            <span class="color-swatch" id="foreground-swatch"></span>
           </div>
-          
-          <div class="color-input">
-            <label for="background-color">Background Color</label>
-            <input type="text" id="background-color" placeholder="#FFFFFF" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label for="background-color">Background Color</label>
+          <div class="color-input-wrapper">
+            <input type="text" id="background-color" placeholder="#FFFFFF" maxlength="7">
+            <span class="color-swatch" id="background-swatch"></span>
           </div>
         </div>
       </section>
-      
+
       <section class="preview-section">
-        <div id="color-preview" class="color-preview">
-          <p>Preview Text</p>
+        <div id="color-preview">
+          <span class="preview-label">Preview</span>
+          <p class="preview-text">Your text will look like this</p>
+          <h3 class="preview-heading">And headings like this</h3>
         </div>
       </section>
-      
+
       <section class="actions">
-        <div class="buttons">
-          <button id="check-button" class="primary-button">Check Contrast</button>
-          <button id="random-button" class="secondary-button">Random Colors</button>
-          <button id="reset-button" class="secondary-button">Reset</button>
-        </div>
+        <button id="check-button" class="primary">Check Contrast</button>
+        <button id="random-button">Random Colors</button>
+        <button id="reset-button">Reset</button>
       </section>
-      
+
       <section id="result-container" class="result-container hidden">
-        <div class="results-summary">
-          <h2>Contrast Ratio</h2>
-          <div id="contrast-ratio" class="contrast-ratio">--</div>
+        <div class="result-summary">
+          <div class="ratio-display">
+            <span class="ratio-label">Contrast Ratio</span>
+            <span id="contrast-ratio" class="ratio-value">21.0</span>
+          </div>
+          <div id="wcag-results"></div>
         </div>
-        
-        <div id="wcag-results" class="wcag-results"></div>
-        
         <div id="alternatives-container" class="alternatives-container"></div>
       </section>
     </main>
-    
+
     <footer>
-      <p>Based on <a href="https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html" target="_blank" rel="noopener">WCAG 2.1</a> guidelines for web accessibility</p>
+      <div class="footer-content">
+        <p class="copyright">© <span id="current-year"></span> Chroma11y</p>
+        <div class="footer-links">
+          <a href="https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html" target="_blank" rel="noopener">WCAG Guidelines</a>
+          <span class="separator">•</span>
+          <a href="#" class="js-about-trigger">About</a>
+          <span class="separator">•</span>
+          <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
     </footer>
   </div>
   
-  <script type="module" src="src/js/main.js"></script>
+  <div class="modal" id="about-modal">
+    <div class="modal-content">
+      <button class="close-modal">×</button>
+      <h2>About Chroma11y</h2>
+      <p>Chroma11y helps designers and developers create beautiful, accessible color combinations that comply with WCAG accessibility standards.</p>
+      <h3>How it works</h3>
+      <p>Enter your text and background colors, and Chroma11y will calculate the contrast ratio and check it against WCAG 2.1 standards:</p>
+      <ul>
+        <li><strong>AA Large Text (3:1)</strong> - For large text (18pt+) and UI components</li>
+        <li><strong>AA Small Text (4.5:1)</strong> - For regular text under 18pt</li>
+        <li><strong>AAA Large Text (4.5:1)</strong> - Enhanced contrast for large text</li>
+        <li><strong>AAA Small Text (7:1)</strong> - Maximum contrast for small text</li>
+      </ul>
+      <p>If your colors don't meet the standards, we'll suggest alternatives that do.</p>
+      <p class="version">Version 1.2.0</p>
+    </div>
+  </div>
+
+  <script src="src/js/main.js"></script>
 </body>
 </html>
