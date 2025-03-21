@@ -198,58 +198,149 @@ document.addEventListener('DOMContentLoaded', function() {
 
 		// Determine which color to adjust (usually foreground)
 		let adjustForeground = calculateLuminance(frgRgb) < calculateLuminance(bkgRgb);
-
+		
 		let alternatives = [];
-
-		// Strategy 1: Increase contrast by darkening the darker color or lightening the lighter
-		if (adjustForeground) {
-			// Darken foreground if it's already dark
-			if (calculateLuminance(frgRgb) < 0.5) {
-				alternatives.push(darkenColor(foreground, 0.3));
-				alternatives.push(darkenColor(foreground, 0.6));
-			} else {
-				// Lighten foreground if it's light
-				alternatives.push(lightenColor(foreground, 0.3));
-				alternatives.push(lightenColor(foreground, 0.6));
-			}
-		} else {
-			// Adjust background instead
-			if (calculateLuminance(bkgRgb) < 0.5) {
-				alternatives.push({
-					foreground,
-					background: darkenColor(background, 0.3)
-				});
-				alternatives.push({
-					foreground,
-					background: darkenColor(background, 0.6)
-				});
-			} else {
-				alternatives.push({
-					foreground,
-					background: lightenColor(background, 0.3)
-				});
-				alternatives.push({
-					foreground,
-					background: lightenColor(background, 0.6)
-				});
-			}
-		}
-
-		// Strategy 2: Provide high contrast alternatives (black/white)
+		let attemptsLimit = 20; // Prevent infinite loops
+		
+		// Generate high contrast black/white alternatives first (guaranteed to be compliant)
 		alternatives.push({
 			foreground: calculateLuminance(bkgRgb) < 0.5 ? '#FFFFFF' : '#000000',
 			background
 		});
-
-		// Strategy 3: Maintain hue but adjust saturation/lightness
-		const adjustedHue = adjustForeground ?
-			adjustSaturationAndLightness(foreground) :
-			{ foreground, background: adjustSaturationAndLightness(background).foreground };
-
-		alternatives.push(adjustedHue);
-
+		
+		// If background is very light or very dark, create a compliant alternative with the opposite
+		alternatives.push({
+			foreground,
+			background: calculateLuminance(bkgRgb) < 0.5 ? '#FFFFFF' : '#000000'
+		});
+		
+		// Generate additional alternatives until we have 4 compliant options
+		while (alternatives.length < 4 && attemptsLimit > 0) {
+			attemptsLimit--;
+			
+			// Try adjusting foreground with varying intensities
+			if (adjustForeground) {
+				const intensity = Math.random() * 0.8 + 0.2; // 0.2 to 1.0
+				let adjustedColor;
+				
+				if (calculateLuminance(frgRgb) < calculateLuminance(bkgRgb)) {
+					// If foreground is darker than background, make it even darker or much lighter
+					adjustedColor = Math.random() > 0.5 ? 
+						darkenColor(foreground, intensity) : 
+						lightenColor(foreground, intensity);
+				} else {
+					// If foreground is lighter than background, make it even lighter or much darker
+					adjustedColor = Math.random() > 0.5 ? 
+						lightenColor(foreground, intensity) : 
+						darkenColor(foreground, intensity);
+				}
+				
+				const newAlternative = {
+					foreground: adjustedColor,
+					background
+				};
+				
+				// Check if this alternative is compliant (at least AA Small Text)
+				const ratio = calculateContrastRatio(newAlternative.foreground, newAlternative.background);
+				const compliance = checkWCAGCompliance(ratio);
+				
+				if (compliance.AASmallText && !isDuplicate(alternatives, newAlternative)) {
+					alternatives.push(newAlternative);
+				}
+			} 
+			// Try adjusting background with varying intensities
+			else {
+				const intensity = Math.random() * 0.8 + 0.2; // 0.2 to 1.0
+				let adjustedColor;
+				
+				if (calculateLuminance(bkgRgb) < calculateLuminance(frgRgb)) {
+					// If background is darker than foreground, make it even darker or much lighter
+					adjustedColor = Math.random() > 0.5 ? 
+						darkenColor(background, intensity) : 
+						lightenColor(background, intensity);
+				} else {
+					// If background is lighter than foreground, make it even lighter or much darker
+					adjustedColor = Math.random() > 0.5 ? 
+						lightenColor(background, intensity) : 
+						darkenColor(background, intensity);
+				}
+				
+				const newAlternative = {
+					foreground,
+					background: adjustedColor
+				};
+				
+				// Check if this alternative is compliant (at least AA Small Text)
+				const ratio = calculateContrastRatio(newAlternative.foreground, newAlternative.background);
+				const compliance = checkWCAGCompliance(ratio);
+				
+				if (compliance.AASmallText && !isDuplicate(alternatives, newAlternative)) {
+					alternatives.push(newAlternative);
+				}
+			}
+			
+			// Switch between adjusting foreground and background
+			if (attemptsLimit % 5 === 0) {
+				adjustForeground = !adjustForeground;
+			}
+		}
+		
+		// If we still don't have enough alternatives, add some high contrast variations
+		while (alternatives.length < 4) {
+			// Create variations of black and white with slight tints
+			const hue = Math.floor(Math.random() * 360);
+			const newAlternative = Math.random() > 0.5 ? 
+				{
+					foreground: `hsl(${hue}, 15%, 10%)`,
+					background: `hsl(${hue}, 15%, 95%)`
+				} : 
+				{
+					foreground: `hsl(${hue}, 15%, 95%)`,
+					background: `hsl(${hue}, 15%, 10%)`
+				};
+			
+			if (!isDuplicate(alternatives, newAlternative)) {
+				alternatives.push(newAlternative);
+			}
+		}
+		
+		// Ensure we only have 4 alternatives
+		alternatives = alternatives.slice(0, 4);
+		
 		// Display alternatives
 		displayAlternatives(alternatives);
+	}
+	
+	/**
+	 * Check if a color alternative is already in the list (avoid duplicates)
+	 */
+	function isDuplicate(alternatives, newAlternative) {
+		return alternatives.some(alt => {
+			const fg1 = alt.foreground || alt;
+			const bg1 = alt.background || backgroundInput.value;
+			const fg2 = newAlternative.foreground;
+			const bg2 = newAlternative.background;
+			
+			// Consider similar colors as duplicates (within a small threshold)
+			const fgSimilar = colorSimilarity(fg1, fg2) < 10;
+			const bgSimilar = colorSimilarity(bg1, bg2) < 10;
+			
+			return fgSimilar && bgSimilar;
+		});
+	}
+	
+	/**
+	 * Calculate color similarity (Euclidean distance in RGB space)
+	 */
+	function colorSimilarity(color1, color2) {
+		const rgb1 = hexToRgb(color1);
+		const rgb2 = hexToRgb(color2);
+		
+		const rDiff = rgb1.r - rgb2.r;
+		const gDiff = rgb1.g - rgb2.g;
+		const bDiff = rgb1.b - rgb2.b;
+		
+		return Math.sqrt(rDiff*rDiff + gDiff*gDiff + bDiff*bDiff);
 	}
 
 	/**
@@ -324,6 +415,11 @@ document.addEventListener('DOMContentLoaded', function() {
 			const bg = alt.background || backgroundInput.value;
 			const ratio = calculateContrastRatio(fg, bg).toFixed(2);
 			const compliance = checkWCAGCompliance(parseFloat(ratio));
+			
+			// Only display alternatives that are at least AA Small Text compliant
+			if (!compliance.AASmallText) {
+				return;
+			}
 
 			let complianceText = '';
 			if (compliance.AAASmallText) {
@@ -332,8 +428,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				complianceText = '<span class="compliance-level high">AA</span>';
 			} else if (compliance.AALargeText) {
 				complianceText = '<span class="compliance-level medium">AA Large</span>';
-			} else {
-				complianceText = '<span class="compliance-level low">Not Compliant</span>';
 			}
 
 			html += `
@@ -352,6 +446,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		html += '</div>';
+		
+		// If no alternatives were displayed, show a message
+		if (!html.includes('alternative-preview')) {
+			html = '<h3>Suggested Alternatives</h3><p>We couldn\'t generate compliant alternatives. Try adjusting your colors slightly.</p>';
+		}
+		
 		alternativesContainer.innerHTML = html;
 
 		// Add event listeners to apply buttons
