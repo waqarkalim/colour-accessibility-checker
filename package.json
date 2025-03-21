@@ -1,0 +1,24 @@
+{
+  "name": "colour-accessibility-checker",
+  "version": "1.0.0",
+  "description": "A tool to check color combinations against WCAG accessibility standards",
+  "main": "src/js/main.js",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "accessibility",
+    "colors",
+    "WCAG",
+    "contrast"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.3",
+  "devDependencies": {
+    "vite": "^5.4.14"
+  }
+}

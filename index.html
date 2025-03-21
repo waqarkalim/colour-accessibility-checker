@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hex Color Accessibility Checker</title>
+  <link rel="stylesheet" href="src/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Hex Color Accessibility Checker</h1>
+      <p>Test color combinations for WCAG 2.1 compliance and get suggestions for accessible alternatives.</p>
+    </header>
+    
+    <main>
+      <div class="input-group">
+        <div class="color-input">
+          <label for="foreground-color">Foreground Color (Text):</label>
+          <input type="text" id="foreground-color" placeholder="#000000">
+        </div>
+        
+        <div class="color-input">
+          <label for="background-color">Background Color:</label>
+          <input type="text" id="background-color" placeholder="#FFFFFF">
+        </div>
+      </div>
+      
+      <div id="color-preview" class="color-preview">
+        <h2>Preview</h2>
+        <p>This is sample text</p>
+      </div>
+      
+      <div class="buttons">
+        <button id="check-button" class="primary-button">Check Accessibility</button>
+        <button id="random-button" class="secondary-button">Random Colors</button>
+        <button id="reset-button" class="secondary-button">Reset</button>
+      </div>
+      
+      <div id="result-container" class="result-container hidden">
+        <h2>Contrast Ratio</h2>
+        <div id="contrast-ratio" class="contrast-ratio">--</div>
+        
+        <div id="wcag-results" class="wcag-results"></div>
+        
+        <div id="alternatives-container" class="alternatives-container"></div>
+      </div>
+    </main>
+    
+    <footer>
+      <p>Based on WCAG 2.1 guidelines. Created for color accessibility testing purposes.</p>
+    </footer>
+  </div>
+  
+  <script type="module" src="src/js/main.js"></script>
+</body>
+</html>
