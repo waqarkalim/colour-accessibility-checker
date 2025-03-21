@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	const backgroundInput = document.getElementById('background-color');
 	const foregroundSwatch = document.getElementById('foreground-swatch');
 	const backgroundSwatch = document.getElementById('background-swatch');
-	const checkButton = document.getElementById('check-button');
 	const randomButton = document.getElementById('random-button');
 	const resetButton = document.getElementById('reset-button');
 	const resultContainer = document.getElementById('result-container');
@@ -38,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	updateSwatches();
 
 	// Event listeners
-	checkButton.addEventListener('click', checkAccessibility);
 	randomButton.addEventListener('click', generateRandomColors);
 	resetButton.addEventListener('click', resetColors);
 	foregroundInput.addEventListener('input', handleInputChange);
@@ -122,8 +120,17 @@ document.addEventListener('DOMContentLoaded', function() {
 		
 		// Automatically check accessibility after a short delay
 		clearTimeout(debounceTimeout);
+		
+		// Show "checking" message
+		const isValidFg = isValidHex(foregroundInput.value);
+		const isValidBg = isValidHex(backgroundInput.value);
+		
+		if (isValidFg && isValidBg) {
+			showNotification('Checking contrast...', 'info', 400);
+		}
+		
 		debounceTimeout = setTimeout(() => {
-			if (isValidHex(foregroundInput.value) && isValidHex(backgroundInput.value)) {
+			if (isValidFg && isValidBg) {
 				checkAccessibility();
 			}
 		}, 500);
@@ -187,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	/**
 	 * Display a notification message
 	 */
-	function showNotification(message, type = 'info') {
+	function showNotification(message, type = 'info', duration = 3000) {
 		// Remove any existing notification
 		const existingNotification = document.querySelector('.notification');
 		if (existingNotification) {
@@ -207,13 +214,13 @@ document.addEventListener('DOMContentLoaded', function() {
 			notification.classList.add('visible');
 		}, 10);
 		
-		// Auto-remove after 3 seconds
+		// Auto-remove after specified duration
 		setTimeout(() => {
 			notification.classList.remove('visible');
 			setTimeout(() => {
 				notification.remove();
 			}, 300);
-		}, 3000);
+		}, duration);
 	}
 
 	/**
@@ -605,10 +612,14 @@ document.addEventListener('DOMContentLoaded', function() {
 		backgroundInput.value = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
 		updateColorPreview();
 		updateSwatches();
-		checkAccessibility();
 		
-		// Show feedback
-		showNotification('Random colors generated!', 'info');
+		// Show checking message first
+		showNotification('Checking contrast...', 'info', 400);
+		
+		// Small delay for notification to be visible
+		setTimeout(() => {
+			checkAccessibility();
+		}, 500);
 	}
 
 	/**
