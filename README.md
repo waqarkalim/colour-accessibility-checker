@@ -1,14 +1,14 @@
-# Hex Color Accessibility Checker
+# Colour Accessibility Checker
 
-A tool to check color combinations against WCAG accessibility standards and get suggestions for accessible alternatives.
+A tool to check colour combinations against WCAG accessibility standards and get suggestions for accessible alternatives.
 
 ## Features
 
-- Check contrast ratio between foreground and background colors
+- Check contrast ratio between foreground and background colours
 - Validate against WCAG 2.1 compliance levels (AA and AAA for both large and small text)
-- Generate accessible color alternatives when combinations don't meet standards
-- Preview color combinations in real-time
-- Generate random colors for testing
+- Generate accessible colour alternatives when combinations don't meet standards
+- Preview colour combinations in real-time
+- Generate random colours for testing
 
 ## Technologies Used
 
@@ -67,13 +67,9 @@ pnpm preview
 
 ## How to Use
 
-1. Enter your foreground (text) color and background color in hex format (e.g., #000000 for black)
+1. Enter your foreground (text) colour and background colour in hex format (e.g., #000000 for black)
 2. Click "Check Accessibility" to see the contrast ratio and WCAG compliance results
 3. If the combination doesn't meet standards, review the suggested alternatives
-4. Click "Apply" on any alternative to use that color combination
-5. Use "Random Colors" to generate random combinations for testing
+4. Click "Apply" on any alternative to use that colour combination
+5. Use "Random colours" to generate random combinations for testing
 6. Click "Reset" to return to the default black on white combination
-
-## License
-
-ISC 
