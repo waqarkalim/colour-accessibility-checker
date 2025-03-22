@@ -42,10 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	foregroundInput.addEventListener('input', handleInputChange);
 	backgroundInput.addEventListener('input', handleInputChange);
 	
-	// Handle keypresses in input fields
-	foregroundInput.addEventListener('keydown', handleKeyDown);
-	backgroundInput.addEventListener('keydown', handleKeyDown);
-
 	// About modal
 	if (aboutTrigger) {
 		aboutTrigger.addEventListener('click', function(e) {
@@ -133,21 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	/**
-	 * Handler for key presses in input fields
-	 */
-	function handleKeyDown(e) {
-		// Run check when pressing Enter
-		if (e.key === 'Enter') {
-			checkAccessibility();
-		}
-		
-		// Add # automatically if typing directly a hex code
-		if (!e.target.value.startsWith('#') && e.key.match(/[0-9a-f]/i)) {
-			e.target.value = '#';
-		}
-	}
-	
-	/**
 	 * Handle input change with debounce
 	 */
 	let debounceTimeout;
@@ -159,17 +140,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		clearTimeout(debounceTimeout);
 		
 		// Show "checking" message
-		const isValidFg = isValidHex(foregroundInput.value);
-		const isValidBg = isValidHex(backgroundInput.value);
-		
-		if (isValidFg && isValidBg) {
-			showNotification('Checking contrast...', 'info', 400);
-		}
+		showNotification('Checking contrast...', 'info', 400);
 		
 		debounceTimeout = setTimeout(() => {
-			if (isValidFg && isValidBg) {
-				checkAccessibility();
-			}
+			checkAccessibility();
 		}, 500);
 	}
 
@@ -177,13 +151,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	 * Update color swatches next to inputs
 	 */
 	function updateSwatches() {
-		if (isValidHex(foregroundInput.value)) {
-			foregroundSwatch.style.backgroundColor = foregroundInput.value;
-		}
-		
-		if (isValidHex(backgroundInput.value)) {
-			backgroundSwatch.style.backgroundColor = backgroundInput.value;
-		}
+		foregroundSwatch.style.backgroundColor = foregroundInput.value;
+		backgroundSwatch.style.backgroundColor = backgroundInput.value;
 	}
 
 	/**
@@ -192,11 +161,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	function checkAccessibility() {
 		const foregroundColor = foregroundInput.value;
 		const backgroundColor = backgroundInput.value;
-
-		if (!isValidHex(foregroundColor) || !isValidHex(backgroundColor)) {
-			showNotification('Please enter valid hex colors (e.g., #000000)', 'error');
-			return;
-		}
 
 		// Calculate contrast ratio
 		const ratio = calculateContrastRatio(foregroundColor, backgroundColor);
@@ -616,6 +580,15 @@ document.addEventListener('DOMContentLoaded', function() {
 		// Add event listeners to apply buttons
 		document.querySelectorAll('.apply-button').forEach(button => {
 			button.addEventListener('click', function() {
+				// Store reference to the clicked button
+				const clickedButton = this;
+				
+				// Disable all apply buttons
+				document.querySelectorAll('.apply-button').forEach(btn => {
+					btn.disabled = true;
+					btn.classList.add('disabled');
+				});
+				
 				foregroundInput.value = this.dataset.fg;
 				backgroundInput.value = this.dataset.bg;
 				updateColorPreview();
@@ -624,6 +597,19 @@ document.addEventListener('DOMContentLoaded', function() {
 				
 				// Show feedback
 				showNotification('Colors applied successfully!', 'success');
+				
+				// Re-enable all apply buttons after a short delay
+				setTimeout(() => {
+					document.querySelectorAll('.apply-button').forEach(btn => {
+						btn.disabled = false;
+						btn.classList.remove('disabled');
+					});
+					
+					// Restore focus to the clicked button
+					if (clickedButton && document.body.contains(clickedButton)) {
+						clickedButton.focus();
+					}
+				}, 500);
 			});
 		});
 	}
@@ -645,6 +631,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	 * Generate random colors
 	 */
 	function generateRandomColors() {
+		// Prevent multiple clicks
+		randomButton.disabled = true;
+		randomButton.classList.add('disabled');
+		
 		// Pick two different random colors from the curated list
 		const colorIndex1 = Math.floor(Math.random() * CURATED_COLORS.length);
 		let colorIndex2 = Math.floor(Math.random() * CURATED_COLORS.length);
@@ -666,8 +656,12 @@ document.addEventListener('DOMContentLoaded', function() {
 			background = nameToHex(background);
 		}
 		
-		foregroundInput.value = foreground.toUpperCase();
-		backgroundInput.value = background.toUpperCase();
+		// Ensure hex codes are properly formatted for color inputs (lowercase, 6 characters)
+		foreground = ensureProperHexFormat(foreground);
+		background = ensureProperHexFormat(background);
+		
+		foregroundInput.value = foreground;
+		backgroundInput.value = background;
 		
 		updateColorPreview();
 		updateSwatches();
@@ -678,7 +672,30 @@ document.addEventListener('DOMContentLoaded', function() {
 		// Small delay for notification to be visible
 		setTimeout(() => {
 			checkAccessibility();
+			
+			// Re-enable button after processing is complete
+			randomButton.disabled = false;
+			randomButton.classList.remove('disabled');
+			
+			// Restore focus to the button for better keyboard navigation
+			randomButton.focus();
 		}, 500);
+	}
+
+	/**
+	 * Ensure hex color is properly formatted for color inputs
+	 */
+	function ensureProperHexFormat(hex) {
+		// Remove # if present
+		hex = hex.replace('#', '');
+		
+		// Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+		if (hex.length === 3) {
+			hex = hex.split('').map(char => char + char).join('');
+		}
+		
+		// Ensure lowercase and add # prefix
+		return '#' + hex.toLowerCase();
 	}
 
 	/**
@@ -712,17 +729,31 @@ document.addEventListener('DOMContentLoaded', function() {
 	 * Reset to default colors
 	 */
 	function resetColors() {
+		// Prevent multiple clicks
+		resetButton.disabled = true;
+		resetButton.classList.add('disabled');
+		
+		// Reset to default colors
 		foregroundInput.value = '#000000';
 		backgroundInput.value = '#FFFFFF';
+		
 		updateColorPreview();
 		updateSwatches();
+		
+		// Hide result container
 		resultContainer.classList.remove('visible');
+		
+		// Small delay to match the transition duration
 		setTimeout(() => {
 			resultContainer.classList.add('hidden');
+			
+			// Re-enable button after processing is complete
+			resetButton.disabled = false;
+			resetButton.classList.remove('disabled');
+			
+			// Restore focus to the button for better keyboard navigation
+			resetButton.focus();
 		}, 300);
-		
-		// Show feedback
-		showNotification('Colors reset to default', 'info');
 	}
 
 	/**
