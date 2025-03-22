@@ -598,6 +598,15 @@ document.addEventListener('DOMContentLoaded', function() {
 				// Show feedback
 				showNotification('Colors applied successfully!', 'success');
 				
+				// Check if the selected colors are accessible
+				const ratio = calculateContrastRatio(this.dataset.fg, this.dataset.bg);
+				const wcagCompliance = checkWCAGCompliance(ratio);
+				
+				// If colors are accessible, scroll to the top
+				if (wcagCompliance.AALargeText || wcagCompliance.AASmallText) {
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+				}
+				
 				// Re-enable all apply buttons after a short delay
 				setTimeout(() => {
 					document.querySelectorAll('.apply-button').forEach(btn => {
